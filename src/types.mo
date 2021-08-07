@@ -61,7 +61,10 @@ module {
     };
 
     public type NftEgg = {
-        payload : {#Payload : [Nat8]; #StagedData};
+        payload : {
+            #Payload : Blob;
+            #StagedData;
+        };
         contentType : Text;
         owner : ?Principal;
         properties : ?Property;
@@ -92,20 +95,26 @@ module {
 
     public type EventMessage = {
         createdAt : Int;
-        event : {#ContractEvent : ContractEvent; #NftEvent : NftEvent;};
+        event : {
+            #ContractEvent : ContractEvent;
+            #NftEvent : NftEvent;
+        };
         topupCallback : TopupCallback;
         topupAmount : Nat;
     };
 
-    public type StaticAsset = {contentType : Text; payload : [Blob]};
+    public type StaticAsset = {
+        contentType : Text;
+        payload : [Blob];
+    };
     public type ContractInfo = {
-        heap_size : Nat; 
-        memory_size : Nat;
-        max_live_size : Nat;
-        nft_payload_size : Nat; 
-        total_minted : Nat; 
-        cycles : Nat; 
-        authorized_users : [Principal]
+        heapSize : Nat;
+        memorySize : Nat;
+        maxLiveSize : Nat;
+        nftPayloadSize : Nat;
+        totalMinted : Nat;
+        cycles : Nat;
+        authorizedUsers : [Principal];
     };
     
     public type StagedWrite = {

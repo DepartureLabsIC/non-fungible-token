@@ -509,7 +509,7 @@ shared({ caller = hub }) actor class Nft() = this {
                 nfts.put(thisId, {
                     contentType = egg.contentType;
                     createdAt = Time.now();
-                    payload = [Blob.fromArray(v)];
+                    payload = [v];
                     properties = egg.properties;
                     isPrivate = egg.isPrivate;
                  });
@@ -558,13 +558,13 @@ shared({ caller = hub }) actor class Nft() = this {
 
     private func _contractInfo() : NftTypes.ContractInfo {
         return {
-            heap_size = Prim.rts_heap_size();
-            memory_size = Prim.rts_memory_size();
-            max_live_size = Prim.rts_max_live_size();
-            nft_payload_size = payloadSize; 
-            total_minted = nfts.size(); 
+            heapSize = Prim.rts_heap_size();
+            memorySize = Prim.rts_memory_size();
+            maxLiveSize = Prim.rts_max_live_size();
+            nftPayloadSize = payloadSize;
+            totalMinted = nfts.size();
             cycles = ExperimentalCycles.balance();
-            authorized_users = contractOwners
+            authorizedUsers = contractOwners;
         };
     };
 
@@ -801,9 +801,9 @@ shared({ caller = hub }) actor class Nft() = this {
 
     // Http Interface
 
-    let NOT_FOUND : Http.Response = {status_code = 404; headers = []; body = Blob.fromArray([]); streaming_strategy = null};
-    let BAD_REQUEST : Http.Response = {status_code = 400; headers = []; body = Blob.fromArray([]); streaming_strategy = null};
-    let UNAUTHORIZED : Http.Response = {status_code = 401; headers = []; body = Blob.fromArray([]); streaming_strategy = null};
+    let NOT_FOUND : Http.Response = {statusCode = 404; headers = []; body = Blob.fromArray([]); streamingStrategy = null};
+    let BAD_REQUEST : Http.Response = {statusCode = 400; headers = []; body = Blob.fromArray([]); streamingStrategy = null};
+    let UNAUTHORIZED : Http.Response = {statusCode = 401; headers = []; body = Blob.fromArray([]); streamingStrategy = null};
 
     public query func http_request(request : Http.Request) : async Http.Response {
         Debug.print(request.url);
@@ -837,8 +837,8 @@ shared({ caller = hub }) actor class Nft() = this {
                     return {
                         body = asset.payload[0];
                         headers = [("Content-Type", asset.contentType)];
-                        status_code = 200;
-                        streaming_strategy = null;
+                        statusCode = 200;
+                        streamingStrategy = null;
                     };
                 }
             }
@@ -855,10 +855,10 @@ shared({ caller = hub }) actor class Nft() = this {
                     return _handleLargeContent(id, nft.contentType, nft.payload);
                 } else {
                     return {
-                        status_code = 200;
+                        statusCode = 200;
                         headers = [("Content-Type", nft.contentType)];
                         body = nft.payload[0];
-                        streaming_strategy = null;
+                        streamingStrategy = null;
                     }
                 }
             };
@@ -870,17 +870,17 @@ shared({ caller = hub }) actor class Nft() = this {
         let (payload, token) = _streamContent(id, 0, data);
 
         return {
-            status_code = 200;
+            statusCode = 200;
             headers = [("Content-Type", contentType)];
             body = payload;
-            streaming_strategy = ? #Callback({
+            streamingStrategy = ? #Callback({
                 token = Option.unwrap(token);
-                callback = http_request_streaming_callback;
+                callback = httpRequestStreamingCallback;
             });
         };
     };
 
-    public query func http_request_streaming_callback(token : Http.StreamingCallbackToken) : async Http.StreamingCallbackResponse {
+    public query func httpRequestStreamingCallback(token : Http.StreamingCallbackToken) : async Http.StreamingCallbackResponse {
         switch(nfts.get(token.key)) {
             case null return {body = Blob.fromArray([]); token = null};
             case (?v) {
@@ -903,7 +903,7 @@ shared({ caller = hub }) actor class Nft() = this {
         };
 
         return (payload, ?{
-            content_encoding = "gzip";
+            contentEncoding = "gzip";
             index = idx + 1;
             sha256 = null;
             key = id;

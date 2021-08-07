@@ -11,12 +11,12 @@ module {
     public type Response = {
         body: Blob;
         headers: [HeaderField];
-        status_code: Nat16;
-        streaming_strategy: ?StreamingStrategy;
+        statusCode: Nat16;
+        streamingStrategy: ?StreamingStrategy;
     };
     
     public type StreamingCallbackToken =  {
-        content_encoding: Text;
+        contentEncoding: Text;
         index: Nat;
         key: Text;
         sha256: ?Blob;
