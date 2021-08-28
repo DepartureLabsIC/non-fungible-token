@@ -1,6 +1,7 @@
 on: 
   push:
     paths:
+      - 'example.sh'
       - 'src/**'
 jobs:
   deploy:
@@ -12,6 +13,4 @@ jobs:
           dfx-version: 0.8.0
           install-moc: true
       - run: for i in src/*.mo ; do moc --package base $(dfx cache show)/base --check $i ; done
-      - run: |
-          dfx start --background
-          dfx deploy
+      - run: ./example.sh
