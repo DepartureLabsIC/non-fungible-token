@@ -15,6 +15,8 @@ import Text "mo:base/Text";
 import Time "mo:base/Time";
 import Token "token";
 import Types "types";
+import MarketMaker "marketmaker";
+import QuarkPaymentProcessor "payment_processors/quark";
 
 shared({ caller = hub }) actor class Hub() = this {
     var MAX_RESULT_SIZE_BYTES     = 1_000_000; // 1MB Default
@@ -40,10 +42,15 @@ shared({ caller = hub }) actor class Hub() = this {
         ),
         Token.Token, // NFT data.
     )] = [];
+    stable var marketEntries : [(Text, MarketMaker.TokenMarketState)] = [];
+
+    let marketMaker = MarketMaker.MarketMaker(marketEntries);
+
     let nfts = Token.NFTs(
         id, 
         payloadSize, 
         nftEntries,
+        marketMaker,
     );
 
     stable var staticAssetsEntries : [(
@@ -94,6 +101,7 @@ shared({ caller = hub }) actor class Hub() = this {
         payloadSize         := nfts.payloadSize();
         nftEntries          := Iter.toArray(nfts.entries());
         staticAssetsEntries := Iter.toArray(staticAssets.entries());
+        marketEntries       := Iter.toArray(marketMaker.entries());
     };
 
     system func postupgrade() {
@@ -101,6 +109,7 @@ shared({ caller = hub }) actor class Hub() = this {
         payloadSize         := 0;
         nftEntries          := [];
         staticAssetsEntries := [];
+        marketEntries       := [];
     };
 
     // Initializes the contract with the given (additional) owners and metadata. Can only be called once.
@@ -273,6 +282,24 @@ shared({ caller = hub }) actor class Hub() = this {
             topupCallback = wallet_receive;
         });
         res;
+    };
+
+    public shared ({caller}) func listToken(id : Text, marketState : MarketMaker.TokenMarketState) : async Result.Result<(), Types.Error> {
+        let owner = switch (_canChange(caller, id)) {
+            case (#err(e)) { return #err(e); };
+            case (#ok(v))  { v; };
+        };
+
+        await nfts.listToken(id, marketState);
+    };
+
+    public shared ({caller}) func delistToken(id : Text) : async Result.Result<(), Types.Error> {
+        let owner = switch (_canChange(caller, id)) {
+            case (#err(e)) { return #err(e); };
+            case (#ok(v))  { v; };
+        };
+
+        await nfts.delistToken(id);
     };
 
     // Allows the caller to authorize another principal to act on its behalf.
@@ -484,6 +511,12 @@ shared({ caller = hub }) actor class Hub() = this {
                 ignore emit(broker, event);
             };
         };
+    };
+
+    // Payments
+
+    public func quarkNotificationHandle() : async () {
+
     };
 
     // HTTP interface
